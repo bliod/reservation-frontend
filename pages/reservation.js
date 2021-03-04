@@ -1,33 +1,31 @@
 import React, { useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import Select from "react-select";
+import Select from "react-select"; //use later
 
-const options = [
-  { value: "17:20", label: "17:20" },
-  //   { value: "strawberry", label: "Strawberry" },
-  //   { value: "vanilla", label: "Vanilla" },
-];
-// const op = Array()
-
-const reservation = () => {
+const reservation = ({ data }) => {
   const [date, setDate] = useState(new Date());
-  const [time, setTime] = useState("12:00");
+  const [hour, setHour] = useState("12");
+  const [minutes, setMinutes] = useState("00");
   const [name, setName] = useState();
   const [surname, setSurname] = useState();
-
+  console.log(data, "cia data");
   const handleSubmit = (evt) => {
     evt.preventDefault();
-    // let reservation = date.setHours(time);
-    // console.log(time);
-    alert(`Submitting Name ${name} ${surname} ${date} ${time}`);
+    setDate((date) => {
+      date.setHours(hour);
+      date.setMinutes(minutes);
+      date.setSeconds("00");
+      console.log(
+        `Submitting Name ${name} ${surname} ${date} ${hour}:${minutes}`
+      );
+    });
+    // alert(`Submitting Name ${name} ${surname} ${date} ${hour}:${minutes}`);
   };
 
   return (
     <div>
       <Calendar onChange={setDate} value={date} />
-      {/* {console.log(value)} */}
-
       <form onSubmit={handleSubmit}>
         <label>
           Name:
@@ -61,17 +59,13 @@ const reservation = () => {
             value={time}
             onChange={(e) => setTime(e.target.value)}
           /> */}
-          {/* <Select
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            options={options}
-          /> */}
-          <select value={time} onChange={(e) => setTime(e.target.value)}>
-            <option value="17:00">17:00</option>
-            <option value="16:00">16:00</option>
-            {/* <option value="lime">Lime</option> */}
-            {/* <option value="coconut">Coconut</option> */}
-            {/* <option value="mango">Mango</option> */}
+          <select value={hour} onChange={(e) => setHour(e.target.value)}>
+            <option value="17">17</option>
+            <option value="16">16</option>
+          </select>
+          <select value={minutes} onChange={(e) => setMinutes(e.target.value)}>
+            <option value="00">00</option>
+            <option value="30">30</option>
           </select>
         </label>
         <input type="submit" value="Submit" />
@@ -79,5 +73,14 @@ const reservation = () => {
     </div>
   );
 };
+
+export async function getServerSideProps() {
+  // Fetch data from external API
+  const res = await fetch(`http://localhost:8081/rest/v1/reservation`);
+  const data = await res.json();
+
+  // Pass data to the page via props
+  return { props: { data } };
+}
 
 export default reservation;
