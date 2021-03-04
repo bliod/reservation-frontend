@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import Select from "react-select"; //use later
+const axios = require("axios");
 
 const reservation = ({ data }) => {
   const [date, setDate] = useState(new Date());
@@ -10,6 +11,7 @@ const reservation = ({ data }) => {
   const [name, setName] = useState();
   const [surname, setSurname] = useState();
   console.log(data, "cia data");
+
   const handleSubmit = (evt) => {
     evt.preventDefault();
     setDate((date) => {
@@ -19,6 +21,17 @@ const reservation = ({ data }) => {
       console.log(
         `Submitting Name ${name} ${surname} ${date} ${hour}:${minutes}`
       );
+      let data = { name, surname, date };
+      fetch(`http://localhost:8081/rest/v1/reservation/create`, {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify(data),
+      })
+        .then((res) => res.json())
+        .then((data) => data);
     });
     // alert(`Submitting Name ${name} ${surname} ${date} ${hour}:${minutes}`);
   };
