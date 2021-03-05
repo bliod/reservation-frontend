@@ -1,65 +1,100 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import React, { useState } from "react";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import Select from "react-select"; //use later
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import styled from "styled-components";
 
-export default function Home() {
+const Container = styled.section`
+  background-color: papayawhip;
+`;
+
+const reservation = ({ data }) => {
+  const [date, setDate] = useState(new Date());
+  const [hour, setHour] = useState("12");
+  const [minutes, setMinutes] = useState("00");
+  const [name, setName] = useState();
+  const [surname, setSurname] = useState();
+  const [isReservated, setIsReservated] = useState(false);
+  const [error, setError] = useState(false);
+
+  const handleSubmit = (evt) => {
+    evt.preventDefault();
+
+    console.log(`Submitting Name ${name} ${surname} ${date}`);
+    let data = { name, surname, date };
+    fetch(`http://localhost:8081/rest/v1/reservation/create`, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setError(true);
+        }
+        // setIsReservated(true);
+        console.log(data);
+      });
+  };
+
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <Container>
+      {/* <Calendar onChange={setDate} value={date} /> */}
+      {error ? <h1>Error</h1> : <h1>All good</h1>}
+      <form onSubmit={handleSubmit}>
+        <label>
+          Name:
+          <input
+            required
+            placeholder="Name"
+            type="text"
+            name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </label>
+        <label>
+          Surname:
+          <input
+            placeholder="Surname"
+            required
+            type="text"
+            name="surname"
+            value={surname}
+            onChange={(e) => setSurname(e.target.value)}
+          />
+        </label>
+        <label>
+          Choose an appointment time :
+          <DatePicker
+            selected={date}
+            onChange={(e) => setDate(e)}
+            // excludeDates={[Date.parse("2021-03-04T10:00:00.575Z")]}
+            // excludeDates={data.map((el) => Date.parse(el))}
+            placeholderText="Select a date other than today or yesterday"
+            showTimeSelect
+            timeFormat="HH:mm"
+            excludeTimes={[...data.map((el) => Date.parse(el))]}
+          />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+    </Container>
+  );
+};
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+export async function getServerSideProps() {
+  // Fetch data from external API
+  const res = await fetch(`http://localhost:8081/rest/v1/reservation`);
+  const data = await res.json();
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
-  )
+  // Pass data to the page via props
+  return { props: { data } };
 }
+
+export default reservation;
