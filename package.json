@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@babel/runtime": "^7.13.9",
     "next": "10.0.7",
     "react": "17.0.1",
     "react-datepicker": "^3.6.0",
