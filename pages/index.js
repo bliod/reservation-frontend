@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import Select from "react-select"; //use later
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import styled from "styled-components";
@@ -18,12 +16,10 @@ const Container = styled.section`
   justify-content: center;
 `;
 const FormWrapper = styled.form`
-  /* display: flex; */
   flex: 1 1 100%;
   flex-flow: row wrap;
   justify-content: center;
   align-items: center;
-  /* max-width: 80%; */
   padding: 0 2rem;
 `;
 const Header = styled.div`
@@ -34,8 +30,6 @@ const SubmitWrapper = styled.div`
   flex: 1 1 100%;
   text-align: center;
   margin-top: 100px;
-  /* width: 100px; */
-  /* max-width: 100px; */
 `;
 const ErrorWrapper = styled.div`
   flex: 1 1 100%;
@@ -83,8 +77,6 @@ const reservation = ({ data }) => {
 
   return (
     <Container>
-      {/* <Calendar onChange={setDate} value={date} /> */}
-      {/* <header>Create Reservation</header> */}
       <Header>
         <h1>Create Reservation</h1>
       </Header>
@@ -116,8 +108,6 @@ const reservation = ({ data }) => {
           <DatePicker
             selected={date}
             onChange={(e) => setDate(e)}
-            // excludeDates={[Date.parse("2021-03-04T10:00:00.575Z")]}
-            // excludeDates={data.map((el) => Date.parse(el))}
             placeholderText="Select a date"
             showTimeSelect
             timeFormat="HH:mm"
