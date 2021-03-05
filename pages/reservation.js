@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import Select from "react-select"; //use later
-const axios = require("axios");
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+// const axios = require("axios");
 
 const reservation = ({ data }) => {
   const [date, setDate] = useState(new Date());
@@ -10,35 +12,45 @@ const reservation = ({ data }) => {
   const [minutes, setMinutes] = useState("00");
   const [name, setName] = useState();
   const [surname, setSurname] = useState();
+  const [isReservated, setIsReservated] = useState(false);
   console.log(data, "cia data");
 
   const handleSubmit = (evt) => {
     evt.preventDefault();
-    setDate((date) => {
-      date.setHours(hour);
-      date.setMinutes(minutes);
-      date.setSeconds("00");
-      console.log(
-        `Submitting Name ${name} ${surname} ${date} ${hour}:${minutes}`
-      );
-      let data = { name, surname, date };
-      fetch(`http://localhost:8081/rest/v1/reservation/create`, {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-        body: JSON.stringify(data),
-      })
-        .then((res) => res.json())
-        .then((data) => data);
-    });
+    // setDate((date) => {
+    //   date.setHours(hour);
+    //   date.setMinutes(minutes);
+    //   date.setSeconds("00");
+    console.log(`Submitting Name ${name} ${surname} ${date}`);
+    let data = { name, surname, date };
+    console.log("data");
+    fetch(`http://localhost:8081/rest/v1/reservation/create`, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((data) => setIsReservated(true));
+    // });
     // alert(`Submitting Name ${name} ${surname} ${date} ${hour}:${minutes}`);
   };
 
   return (
     <div>
-      <Calendar onChange={setDate} value={date} />
+      {/* <Calendar onChange={setDate} value={date} /> */}
+      <DatePicker
+        selected={date}
+        onChange={(e) => setDate(e)}
+        // excludeDates={[Date.parse("2021-03-04T10:00:00.575Z")]}
+        // excludeDates={data.map((el) => Date.parse(el))}
+        placeholderText="Select a date other than today or yesterday"
+        showTimeSelect
+        timeFormat="HH:mm"
+        excludeTimes={[...data.map((el) => Date.parse(el))]}
+      />
       <form onSubmit={handleSubmit}>
         <label>
           Name:
@@ -72,14 +84,14 @@ const reservation = ({ data }) => {
             value={time}
             onChange={(e) => setTime(e.target.value)}
           /> */}
-          <select value={hour} onChange={(e) => setHour(e.target.value)}>
+          {/* <select value={hour} onChange={(e) => setHour(e.target.value)}>
             <option value="17">17</option>
             <option value="16">16</option>
           </select>
           <select value={minutes} onChange={(e) => setMinutes(e.target.value)}>
             <option value="00">00</option>
             <option value="30">30</option>
-          </select>
+          </select> */}
         </label>
         <input type="submit" value="Submit" />
       </form>
