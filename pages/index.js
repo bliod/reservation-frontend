@@ -76,18 +76,13 @@ const reservation = ({ data }) => {
         if (data.error) {
           setError(data.error.message);
           if (data.error.message.includes("E11000")) {
-            console.log("includes");
             setError("Reservation taken, please select other date");
           } //if duplicate
           setIsReservated();
         } else {
-          // setError(false);
           setIsReservated(data);
           setError();
         }
-        // if (data.status)
-
-        // setIsReservated(true);
         console.log(data);
       });
   };
