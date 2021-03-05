@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import styled from "styled-components";
@@ -45,14 +45,22 @@ const LabelWrapper50 = styled.div`
 
 const reservation = ({ data }) => {
   const [date, setDate] = useState();
+  const [submit, setSubmit] = useState(false);
   const [name, setName] = useState();
   const [surname, setSurname] = useState();
   const [isReservated, setIsReservated] = useState();
-  const [error, setError] = useState(false);
+  const [error, setError] = useState();
+
+  // Similar to componentDidMount and componentDidUpdate:
+  useEffect(() => {
+    // Update the document title using the browser API
+    setIsReservated();
+    setError();
+  }, [setSubmit]);
 
   const handleSubmit = (evt) => {
     evt.preventDefault();
-
+    setSubmit(!submit);
     console.log(`Submitting Name ${name} ${surname} ${date}`);
     let data = { name, surname, date };
     fetch(`http://localhost:8081/rest/v1/reservation/create`, {
@@ -67,8 +75,18 @@ const reservation = ({ data }) => {
       .then((data) => {
         if (data.error) {
           setError(data.error.message);
+          if (data.error.message.includes("E11000")) {
+            console.log("includes");
+            setError("Reservation taken, please select other date");
+          } //if duplicate
+          setIsReservated();
+        } else {
+          // setError(false);
+          setIsReservated(data);
+          setError();
         }
-        setIsReservated(data);
+        // if (data.status)
+
         // setIsReservated(true);
         console.log(data);
       });
@@ -110,7 +128,7 @@ const reservation = ({ data }) => {
             placeholderText="Select a date"
             showTimeSelect
             timeFormat="HH:mm"
-            excludeTimes={[...data.map((el) => Date.parse(el))]}
+            // excludeTimes={[...data.map((el) => Date.parse(el))]}
           />
         </label>
         <SubmitWrapper>
@@ -118,11 +136,8 @@ const reservation = ({ data }) => {
         </SubmitWrapper>
       </FormWrapper>
       <ErrorWrapper>
-        {error ? (
-          <h5 style={{ color: "#ff3333" }}>{error}</h5>
-        ) : (
-          <h5>{isReservated}</h5>
-        )}
+        {error ? <h5 style={{ color: "#ff3333" }}>{error}</h5> : <h5></h5>}
+        {isReservated ? <h5>{isReservated}</h5> : <h5></h5>}
       </ErrorWrapper>
     </Container>
   );
