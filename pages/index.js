@@ -47,8 +47,8 @@ const TimeTableWrapper = styled.div`
   .selection {
       color: white;
       background-color:rgb(0, 76, 151);
-
     }
+    
   button {
     border: 0;
     background: none;
@@ -62,12 +62,16 @@ const TimeTableWrapper = styled.div`
     border-style: solid!important;
     border-color: rgba(0,0,0,.12);
     border-radius: 4px;
-    &:hover {
-      border-color: rgb(0, 76, 151);
+    &:hover:not(.taken) {
+    border-color: rgb(0, 76, 151);
     color:rgb(0, 76, 151);
     }
 
   }
+  .taken {
+    border-color: red;
+    color: gray;
+    }
 `;
 const DatePickerWrapper = styled.div`
   display: flex;
@@ -99,12 +103,14 @@ const reservation = ({ data, times }) => {
   const [surname, setSurname] = useState('');
   const [isReservated, setIsReservated] = useState();
   const [error, setError] = useState();
-  const [selection, setSelection] = useState(Array(20).fill(false));
+  const [selection, setSelection] = useState(Array(times.length).fill(false));
   const [timeSelected, setTimeSelected] = useState();
+  const [timesAvailable, setTimesAvailable] = useState(times);
 
   useEffect(() => {
     setIsReservated();
     setError();
+    // setTimesAvailable(times)
   }, [setSubmit]);
 
   const handleSubmit = (evt) => {
@@ -157,6 +163,53 @@ const reservation = ({ data, times }) => {
     setSelection(selectedArray)
   }
 
+  const handleDatePick = (selectDate) => {
+    const timesArray = createTableTimes();
+    console.log(timesArray)
+    setDate(selectDate)
+    console.log(data, 'date')
+    console.log(times, 'times')
+    const monthSelected = new Date(selectDate).getMonth();
+    const daySelected = new Date(selectDate).getDate();
+
+    const sameMonth = data.filter(el => new Date(el).getMonth() == monthSelected)
+    const sameDay = sameMonth.filter(el => new Date(el).getDate() == daySelected)
+    const unavailableTimes = sameDay.map(el => {
+      let hour = new Date(el).getHours()
+      let minutes = new Date(el).getMinutes()
+      return { hour, minutes }
+    })
+
+    if (unavailableTimes.length > 0) {
+      let filterTimesTaken = timesArray;
+      unavailableTimes.forEach(el => {
+        timesArray.forEach((time, idx) => {
+          if (el.hour === time.hour && el.minutes === time.minutes) {
+            filterTimesTaken[idx] = { ...timesArray[idx], taken: true };
+          }
+        })
+      })
+      setTimesAvailable(filterTimesTaken)
+      console.log(filterTimesTaken, 'filterTimesTaken')
+    }
+    if (unavailableTimes.length === 0) {
+      setTimesAvailable(timesArray)
+    }
+
+
+
+
+
+    // setTimesAvailable(times)
+
+
+
+    // console.log(monthSelected, 'monthSelected')
+    // console.log(sameDay, 'sameDay')
+    // console.log(sameMonth, 'sameMonth')
+    console.log(unavailableTimes, 'unavailableTimes')
+  }
+
   return (
     <Container>
       <Header>
@@ -192,7 +245,8 @@ const reservation = ({ data, times }) => {
         <DatePickerWrapper>
           <DatePicker
             selected={date}
-            onChange={date => setDate(date)}
+            // onChange={date => setDate(date)}
+            onChange={(date) => { handleDatePick(date) }}
             inline
           />
           <TimeTableWrapper>
@@ -202,11 +256,17 @@ const reservation = ({ data, times }) => {
                 Choose an appointment time :
                </label>
             </div>
-            {times.map((el, idx) =>
-              <button type="button" className={selection[idx] ? 'selection' : ''} onClick={() => { handleSelection(idx, el) }} key={idx}>
-                {`${el.hour}:${el.minutes}` + (el.minutes === 0 ? '0' : '')}
-              </button>
-            )}
+            {timesAvailable.map((el, idx) => {
+              if (el.taken) {
+                return <button className='taken' type="button" key={idx}>
+                  {`${el.hour}:${el.minutes}` + (el.minutes === 0 ? '0' : '')}
+                </button>
+              } else {
+                return <button type="button" className={selection[idx] ? 'selection' : ''} onClick={() => { handleSelection(idx, el) }} key={idx}>
+                  {`${el.hour}:${el.minutes}` + (el.minutes === 0 ? '0' : '')}
+                </button>
+              }
+            })}
           </TimeTableWrapper>
         </DatePickerWrapper>
 
