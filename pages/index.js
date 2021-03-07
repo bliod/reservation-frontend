@@ -2,15 +2,18 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+// import breakpoint from 'Commons/breakpoints';
 
 const Container = styled.section`
   background-color: papayawhip;
-  margin: auto;
+  margin: 100px auto 0 auto;
   border-radius: 20px;
   box-shadow: 3px 3px 3px #ccc;
   display: flex;
   flex-flow: column nowrap;
   justify-content: center;
+  max-width: 900px;
+
 `;
 const FormWrapper = styled.form`
   flex: 1 1 100%;
@@ -19,6 +22,21 @@ const FormWrapper = styled.form`
   align-items: center;
   padding: 0 2rem;
 `;
+const InputContainer = styled.div`
+  display: flex;
+  flex-flow: row wrap;
+  margin-bottom: 2rem;
+  div {
+    flex: 1 1 100%;
+      input {
+        height: 2rem;
+        width: 50%;
+        @media (max-width: 576px){
+          width: 100%;
+        };
+      };
+    };
+`;
 const Header = styled.div`
   margin: auto;
   text-align: center;
@@ -26,7 +44,16 @@ const Header = styled.div`
 const SubmitWrapper = styled.div`
   flex: 1 1 100%;
   text-align: center;
-  margin-top: 100px;
+  margin-top: 3rem;
+  input {
+    height: 2rem;
+    width: 9rem;
+    background-color: rgb(0, 76, 151);
+    color: white;
+    outline: none;
+    border: none;
+    border-radius: 10px;
+  }
 `;
 const ErrorWrapper = styled.div`
   flex: 1 1 100%;
@@ -35,20 +62,17 @@ const ErrorWrapper = styled.div`
     color: #ff3333;
   }
 `;
-const LabelWrapper50 = styled.div`
-  /* flex: 40%; */
-  margin: 30px 0;
-  max-width: 50%;
-`;
 const TimeTableWrapper = styled.div`
   background-color: white;
   padding: 1rem;
   border-radius: 0.3rem;
+  min-width: 250px;
+  margin-left: 1rem;
+  text-align: left;
   .selection {
       color: white;
       background-color:rgb(0, 76, 151);
     }
-    
   button {
     border: 0;
     background: none;
@@ -75,12 +99,20 @@ const TimeTableWrapper = styled.div`
 `;
 const DatePickerWrapper = styled.div`
   display: flex;
+ 
   div {
     flex: 1 1 50%;
   }
   div:last-of-type {
     flex: 2 1 100%;
   }
+    @media (max-width: 576px){
+      flex-flow: column nowrap;
+      text-align: center;
+      div:last-of-type {
+      margin-left: 0;
+      }
+    }
 `;
 
 const createTableTimes = (length = 20, startHour = 8) => {
@@ -165,10 +197,7 @@ const reservation = ({ data, times }) => {
 
   const handleDatePick = (selectDate) => {
     const timesArray = createTableTimes();
-    console.log(timesArray)
     setDate(selectDate)
-    console.log(data, 'date')
-    console.log(times, 'times')
     const monthSelected = new Date(selectDate).getMonth();
     const daySelected = new Date(selectDate).getDate();
 
@@ -190,23 +219,10 @@ const reservation = ({ data, times }) => {
         })
       })
       setTimesAvailable(filterTimesTaken)
-      console.log(filterTimesTaken, 'filterTimesTaken')
     }
     if (unavailableTimes.length === 0) {
       setTimesAvailable(timesArray)
     }
-
-
-
-
-
-    // setTimesAvailable(times)
-
-
-
-    // console.log(monthSelected, 'monthSelected')
-    // console.log(sameDay, 'sameDay')
-    // console.log(sameMonth, 'sameMonth')
     console.log(unavailableTimes, 'unavailableTimes')
   }
 
@@ -217,35 +233,33 @@ const reservation = ({ data, times }) => {
       </Header>
       <FormWrapper onSubmit={handleSubmit}>
 
-        <LabelWrapper50>
-          Name:
-          <input
-            required
-            placeholder="Name"
-            type="text"
-            name="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </LabelWrapper50>
-        <LabelWrapper50>
-          Surname:
-          <input
-            placeholder="Surname"
-            required
-            type="text"
-            name="surname"
-            value={surname}
-            onChange={(e) => setSurname(e.target.value)}
-          />
-        </LabelWrapper50>
-        {/* <label>
-          Choose an appointment date :
-        </label> */}
+        <InputContainer>
+          <div>
+            <div>Name:</div>
+            <input
+              required
+              placeholder="Name"
+              type="text"
+              name="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div>
+            <div>Surname:</div>
+            <input
+              placeholder="Surname"
+              required
+              type="text"
+              name="surname"
+              value={surname}
+              onChange={(e) => setSurname(e.target.value)}
+            />
+          </div>
+        </InputContainer>
         <DatePickerWrapper>
           <DatePicker
             selected={date}
-            // onChange={date => setDate(date)}
             onChange={(date) => { handleDatePick(date) }}
             inline
           />
@@ -269,14 +283,10 @@ const reservation = ({ data, times }) => {
             })}
           </TimeTableWrapper>
         </DatePickerWrapper>
-
         <SubmitWrapper>
           <input type="submit" value="Submit" />
         </SubmitWrapper>
-
       </FormWrapper>
-
-
       <ErrorWrapper>
         {error ? <h5 style={{ color: "#ff3333" }}>{error}</h5> : <h5></h5>}
         {isReservated ? <h5>{isReservated}</h5> : <h5></h5>}
