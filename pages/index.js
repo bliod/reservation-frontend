@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-// import breakpoint from 'Commons/breakpoints';
+import TimeTable from '../components/TimeTable';
+import DatePickerComponent from '../components/DatePickerComponent';
+import MessageComponent from '../components/MessageComponent';
+import { createTableTimes, getUnavailableTimes } from '../helpers/utilityFunctions';
 
 const Container = styled.section`
   background-color: papayawhip;
@@ -55,51 +56,9 @@ const SubmitWrapper = styled.div`
     border-radius: 10px;
   }
 `;
-const ErrorWrapper = styled.div`
-  flex: 1 1 100%;
-  text-align: center;
-  h4 {
-    color: #ff3333;
-  }
-`;
-const TimeTableWrapper = styled.div`
-  background-color: white;
-  padding: 1rem;
-  border-radius: 0.3rem;
-  min-width: 250px;
-  margin-left: 1rem;
-  text-align: left;
-  .selection {
-      color: white;
-      background-color:rgb(0, 76, 151);
-    }
-  button {
-    border: 0;
-    background: none;
-    color: inherit;
-    padding: 0;
-    margin: 0;
-    outline: none;
-    width: 4rem;
-    height: 3rem;
-    border-width: 1px!important;
-    border-style: solid!important;
-    border-color: rgba(0,0,0,.12);
-    border-radius: 4px;
-    &:hover:not(.taken) {
-    border-color: rgb(0, 76, 151);
-    color:rgb(0, 76, 151);
-    }
 
-  }
-  .taken {
-    border-color: red;
-    color: gray;
-    }
-`;
 const DatePickerWrapper = styled.div`
   display: flex;
- 
   div {
     flex: 1 1 50%;
   }
@@ -115,19 +74,6 @@ const DatePickerWrapper = styled.div`
     }
 `;
 
-const createTableTimes = (length = 20, startHour = 8) => {
-  const availableTimes = Array(length).fill({ hour: 8, minutes: 0 })
-  let initialTime = { hour: 8, minutes: 0 }
-  const times = [];
-  availableTimes.forEach((pres) => {
-    (initialTime.hour == pres.hour && initialTime.minutes == 30) ? pres.hour += 1 : pres.hour;
-    initialTime.minutes == 0 ? pres.minutes += 30 : pres.minutes = 0;
-    initialTime = pres
-    times.push({ ...pres })
-  })
-  return times
-}
-
 const reservation = ({ data, times }) => {
   const [date, setDate] = useState();
   const [submit, setSubmit] = useState(false);
@@ -142,12 +88,10 @@ const reservation = ({ data, times }) => {
   useEffect(() => {
     setIsReservated();
     setError();
-    // setTimesAvailable(times)
   }, [setSubmit]);
 
   const handleSubmit = (evt) => {
     evt.preventDefault();
-
     if (timeSelected === undefined) {
       setError('Please select time')
       return
@@ -157,12 +101,10 @@ const reservation = ({ data, times }) => {
       return
     }
     setSubmit(!submit);
-
     let dateSelected = date;
     dateSelected.setHours(timeSelected.hour, timeSelected.minutes);
     setDate(dateSelected)
 
-    console.log(`Submitting Name ${name} ${surname} ${date}`);
     let data = { name, surname, date };
     fetch(`http://localhost:8081/rest/v1/reservation/create`, {
       headers: {
@@ -197,17 +139,8 @@ const reservation = ({ data, times }) => {
 
   const handleDatePick = (selectDate) => {
     const timesArray = createTableTimes();
-    setDate(selectDate)
-    const monthSelected = new Date(selectDate).getMonth();
-    const daySelected = new Date(selectDate).getDate();
-
-    const sameMonth = data.filter(el => new Date(el).getMonth() == monthSelected)
-    const sameDay = sameMonth.filter(el => new Date(el).getDate() == daySelected)
-    const unavailableTimes = sameDay.map(el => {
-      let hour = new Date(el).getHours()
-      let minutes = new Date(el).getMinutes()
-      return { hour, minutes }
-    })
+    setDate(selectDate);
+    const unavailableTimes = getUnavailableTimes(selectDate, data);
 
     if (unavailableTimes.length > 0) {
       let filterTimesTaken = timesArray;
@@ -223,7 +156,6 @@ const reservation = ({ data, times }) => {
     if (unavailableTimes.length === 0) {
       setTimesAvailable(timesArray)
     }
-    console.log(unavailableTimes, 'unavailableTimes')
   }
 
   return (
@@ -232,7 +164,6 @@ const reservation = ({ data, times }) => {
         <h1>Create Reservation</h1>
       </Header>
       <FormWrapper onSubmit={handleSubmit}>
-
         <InputContainer>
           <div>
             <div>Name:</div>
@@ -258,39 +189,14 @@ const reservation = ({ data, times }) => {
           </div>
         </InputContainer>
         <DatePickerWrapper>
-          <DatePicker
-            selected={date}
-            onChange={(date) => { handleDatePick(date) }}
-            inline
-          />
-          <TimeTableWrapper>
-
-            <div style={{ paddingBottom: '0.5rem' }}>
-              <label>
-                Choose an appointment time :
-               </label>
-            </div>
-            {timesAvailable.map((el, idx) => {
-              if (el.taken) {
-                return <button className='taken' type="button" key={idx}>
-                  {`${el.hour}:${el.minutes}` + (el.minutes === 0 ? '0' : '')}
-                </button>
-              } else {
-                return <button type="button" className={selection[idx] ? 'selection' : ''} onClick={() => { handleSelection(idx, el) }} key={idx}>
-                  {`${el.hour}:${el.minutes}` + (el.minutes === 0 ? '0' : '')}
-                </button>
-              }
-            })}
-          </TimeTableWrapper>
+          <DatePickerComponent currentDate={date} callback={handleDatePick}></DatePickerComponent>
+          <TimeTable callback={handleSelection} timesToShow={timesAvailable} showSelected={selection}></TimeTable>
         </DatePickerWrapper>
         <SubmitWrapper>
           <input type="submit" value="Submit" />
         </SubmitWrapper>
       </FormWrapper>
-      <ErrorWrapper>
-        {error ? <h5 style={{ color: "#ff3333" }}>{error}</h5> : <h5></h5>}
-        {isReservated ? <h5>{isReservated}</h5> : <h5></h5>}
-      </ErrorWrapper>
+      <MessageComponent error={error} success={isReservated}></MessageComponent>
     </Container>
   );
 };
